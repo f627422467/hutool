@@ -1,5 +1,12 @@
 package cn.hutool.core.date;
 
+import cn.hutool.core.date.format.DateParser;
+import cn.hutool.core.date.format.DatePrinter;
+import cn.hutool.core.date.format.FastDateFormat;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -12,13 +19,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-
-import cn.hutool.core.date.format.DateParser;
-import cn.hutool.core.date.format.DatePrinter;
-import cn.hutool.core.date.format.FastDateFormat;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 
 /**
  * 包装java.util.Date
@@ -268,7 +268,12 @@ public class DateTime extends Date {
 	 * @return 如果此对象为可变对象，返回自身，否则返回新对象
 	 */
 	public DateTime offset(DateField datePart, int offset) {
+		if(DateField.ERA == datePart){
+			throw new IllegalArgumentException("ERA is not support offset!");
+		}
+
 		final Calendar cal = toCalendar();
+		//noinspection MagicConstant
 		cal.add(datePart.getValue(), offset);
 
 		DateTime dt = mutable ? this : ObjectUtil.clone(this);
@@ -286,6 +291,7 @@ public class DateTime extends Date {
 	 */
 	public DateTime offsetNew(DateField datePart, int offset) {
 		final Calendar cal = toCalendar();
+		//noinspection MagicConstant
 		cal.add(datePart.getValue(), offset);
 
 		DateTime dt = ObjectUtil.clone(this);
@@ -449,6 +455,16 @@ public class DateTime extends Date {
 	}
 
 	/**
+	 * 获得指定日期是这个日期所在年份的第几天<br>
+	 *
+	 * @return 天
+	 * @since 5.3.6
+	 */
+	public int dayOfYear() {
+		return getField(DateField.DAY_OF_YEAR);
+	}
+
+	/**
 	 * 获得指定日期是星期几，1表示周日，2表示周一
 	 *
 	 * @return 星期几
@@ -594,6 +610,7 @@ public class DateTime extends Date {
 			locale = Locale.getDefault(Locale.Category.FORMAT);
 		}
 		final Calendar cal = (null != zone) ? Calendar.getInstance(zone, locale) : Calendar.getInstance(locale);
+		//noinspection MagicConstant
 		cal.setFirstDayOfWeek(firstDayOfWeek.getValue());
 		cal.setTime(this);
 		return cal;
@@ -826,10 +843,10 @@ public class DateTime extends Date {
 	// -------------------------------------------------------------------- toString start
 
 	/**
-	 * 转为"yyyy-MM-dd yyyy-MM-dd HH:mm:ss " 格式字符串<br>
+	 * 转为"yyyy-MM-dd HH:mm:ss" 格式字符串<br>
 	 * 如果时区被设置，会转换为其时区对应的时间，否则转换为当前地点对应的时区
 	 *
-	 * @return "yyyy-MM-dd yyyy-MM-dd HH:mm:ss " 格式字符串
+	 * @return "yyyy-MM-dd HH:mm:ss" 格式字符串
 	 */
 	@Override
 	public String toString() {
@@ -837,10 +854,10 @@ public class DateTime extends Date {
 	}
 
 	/**
-	 * 转为"yyyy-MM-dd yyyy-MM-dd HH:mm:ss " 格式字符串<br>
+	 * 转为"yyyy-MM-dd HH:mm:ss" 格式字符串<br>
 	 * 时区使用当前地区的默认时区
 	 *
-	 * @return "yyyy-MM-dd yyyy-MM-dd HH:mm:ss " 格式字符串
+	 * @return "yyyy-MM-dd HH:mm:ss" 格式字符串
 	 * @since 4.1.14
 	 */
 	public String toStringDefaultTimeZone() {
@@ -848,11 +865,11 @@ public class DateTime extends Date {
 	}
 
 	/**
-	 * 转为"yyyy-MM-dd yyyy-MM-dd HH:mm:ss " 格式字符串<br>
+	 * 转为"yyyy-MM-dd HH:mm:ss" 格式字符串<br>
 	 * 如果时区不为{@code null}，会转换为其时区对应的时间，否则转换为当前时间对应的时区
 	 *
 	 * @param timeZone 时区
-	 * @return "yyyy-MM-dd yyyy-MM-dd HH:mm:ss " 格式字符串
+	 * @return "yyyy-MM-dd HH:mm:ss" 格式字符串
 	 * @since 4.1.14
 	 */
 	public String toString(TimeZone timeZone) {
@@ -865,9 +882,9 @@ public class DateTime extends Date {
 	}
 
 	/**
-	 * 转为"yyyy-MM-dd " 格式字符串
+	 * 转为"yyyy-MM-dd" 格式字符串
 	 *
-	 * @return "yyyy-MM-dd " 格式字符串
+	 * @return "yyyy-MM-dd" 格式字符串
 	 * @since 4.0.0
 	 */
 	public String toDateStr() {

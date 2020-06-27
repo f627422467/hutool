@@ -1,14 +1,24 @@
 package cn.hutool.core.util;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.IterUtil;
+import cn.hutool.core.comparator.CompareUtil;
 import cn.hutool.core.exceptions.UtilException;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.lang.Filter;
 
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 数组工具类
@@ -477,7 +487,7 @@ public class ArrayUtil {
 	 * @return 新数组
 	 * @since 4.0.8
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "SuspiciousSystemArraycopy"})
 	public static <T> Object insert(Object array, int index, T... newElements) {
 		if (isEmpty(newElements)) {
 			return array;
@@ -541,6 +551,7 @@ public class ArrayUtil {
 		final int length = length(array);
 		final Object newArray = Array.newInstance(array.getClass().getComponentType(), newSize);
 		if (newSize > 0 && isNotEmpty(array)) {
+			//noinspection SuspiciousSystemArraycopy
 			System.arraycopy(array, 0, newArray, 0, Math.min(length, newSize));
 		}
 		return newArray;
@@ -644,6 +655,230 @@ public class ArrayUtil {
 	}
 
 	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static int[] addAll(int[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (int[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final int[] result = new int[length];
+		length = 0;
+		for (int[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static long[] addAll(long[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (long[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final long[] result = new long[length];
+		length = 0;
+		for (long[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static double[] addAll(double[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (double[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final double[] result = new double[length];
+		length = 0;
+		for (double[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static float[] addAll(float[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (float[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final float[] result = new float[length];
+		length = 0;
+		for (float[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static char[] addAll(char[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (char[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final char[] result = new char[length];
+		length = 0;
+		for (char[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static boolean[] addAll(boolean[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (boolean[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final boolean[] result = new boolean[length];
+		length = 0;
+		for (boolean[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static short[] addAll(short[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (short[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final short[] result = new short[length];
+		length = 0;
+		for (short[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
 	 * 包装 {@link System#arraycopy(Object, int, Object, int, int)}<br>
 	 * 数组复制
 	 * 
@@ -656,6 +891,7 @@ public class ArrayUtil {
 	 * @since 3.0.6
 	 */
 	public static Object copy(Object src, int srcPos, Object dest, int destPos, int length) {
+		//noinspection SuspiciousSystemArraycopy
 		System.arraycopy(src, srcPos, dest, destPos, length);
 		return dest;
 	}
@@ -671,6 +907,7 @@ public class ArrayUtil {
 	 * @since 3.0.6
 	 */
 	public static Object copy(Object src, Object dest, int length) {
+		//noinspection SuspiciousSystemArraycopy
 		System.arraycopy(src, 0, dest, 0, length);
 		return dest;
 	}
@@ -828,6 +1065,27 @@ public class ArrayUtil {
 	}
 
 	/**
+	 * 编辑数组<br>
+	 * 编辑过程通过传入的Editor实现来返回需要的元素内容，这个Editor实现可以实现以下功能：
+	 *
+	 * <pre>
+	 * 1、修改元素对象，返回集合中为修改后的对象
+	 * </pre>
+	 *
+	 * 注意：此方法会修改原数组！
+	 *
+	 * @param <T> 数组元素类型
+	 * @param array 数组
+	 * @param editor 编辑器接口
+	 * @since 5.3.3
+	 */
+	public static <T> void edit(T[] array, Editor<T> editor) {
+		for(int i = 0; i < array.length; i++){
+			array[i] = editor.edit(array[i]);
+		}
+	}
+
+	/**
 	 * 过滤<br>
 	 * 过滤过程通过传入的Filter实现来过滤返回需要的元素内容，这个Filter实现可以实现以下功能：
 	 * 
@@ -928,7 +1186,7 @@ public class ArrayUtil {
 		}
 
 		final int size = Math.min(keys.length, values.length);
-		final Map<K, V> map = CollectionUtil.newHashMap(size, isOrder);
+		final Map<K, V> map = CollUtil.newHashMap(size, isOrder);
 		for (int i = 0; i < size; i++) {
 			map.put(keys[i], values[i]);
 		}
@@ -1477,7 +1735,7 @@ public class ArrayUtil {
 
 		final Integer[] array = new Integer[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Integer.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1499,7 +1757,7 @@ public class ArrayUtil {
 
 		final int[] array = new int[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].intValue();
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1521,7 +1779,7 @@ public class ArrayUtil {
 
 		final Long[] array = new Long[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Long.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1543,7 +1801,7 @@ public class ArrayUtil {
 
 		final long[] array = new long[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].longValue();
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1565,7 +1823,7 @@ public class ArrayUtil {
 
 		final Character[] array = new Character[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Character.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1587,7 +1845,7 @@ public class ArrayUtil {
 
 		char[] array = new char[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].charValue();
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1609,7 +1867,7 @@ public class ArrayUtil {
 
 		final Byte[] array = new Byte[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Byte.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1631,7 +1889,7 @@ public class ArrayUtil {
 
 		final byte[] array = new byte[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].byteValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], (byte)0);
 		}
 		return array;
 	}
@@ -1653,7 +1911,7 @@ public class ArrayUtil {
 
 		final Short[] array = new Short[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Short.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1675,7 +1933,7 @@ public class ArrayUtil {
 
 		final short[] array = new short[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].shortValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], (short)0);
 		}
 		return array;
 	}
@@ -1697,7 +1955,7 @@ public class ArrayUtil {
 
 		final Float[] array = new Float[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Float.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1719,7 +1977,7 @@ public class ArrayUtil {
 
 		final float[] array = new float[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].floatValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], 0F);
 		}
 		return array;
 	}
@@ -1741,7 +1999,7 @@ public class ArrayUtil {
 
 		final Double[] array = new Double[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Double.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1763,7 +2021,7 @@ public class ArrayUtil {
 
 		final double[] array = new double[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].doubleValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], 0D);
 		}
 		return array;
 	}
@@ -1785,7 +2043,7 @@ public class ArrayUtil {
 
 		final Boolean[] array = new Boolean[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Boolean.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1807,7 +2065,7 @@ public class ArrayUtil {
 
 		final boolean[] array = new boolean[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].booleanValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], false);
 		}
 		return array;
 	}
@@ -2391,11 +2649,44 @@ public class ArrayUtil {
 			if (ArrayUtil.isArray(item)) {
 				sb.append(join(ArrayUtil.wrap(item), conjunction, prefix, suffix));
 			} else if (item instanceof Iterable<?>) {
-				sb.append(IterUtil.join((Iterable<?>) item, conjunction, prefix, suffix));
+				sb.append(CollUtil.join((Iterable<?>) item, conjunction, prefix, suffix));
 			} else if (item instanceof Iterator<?>) {
 				sb.append(IterUtil.join((Iterator<?>) item, conjunction, prefix, suffix));
 			} else {
 				sb.append(StrUtil.wrap(StrUtil.toString(item), prefix, suffix));
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * 以 conjunction 为分隔符将数组转换为字符串
+	 *
+	 * @param <T> 被处理的集合
+	 * @param array 数组
+	 * @param conjunction 分隔符
+	 * @param editor 每个元素的编辑器，null表示不编辑
+	 * @return 连接后的字符串
+	 * @since 5.3.3
+	 */
+	public static <T> String join(T[] array, CharSequence conjunction, Editor<T> editor) {
+		if (null == array) {
+			return null;
+		}
+
+		final StringBuilder sb = new StringBuilder();
+		boolean isFirst = true;
+		for (T item : array) {
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				sb.append(conjunction);
+			}
+			if(null != editor){
+				item = editor.edit(item);
+			}
+			if(null != item){
+				sb.append(StrUtil.toString(item));
 			}
 		}
 		return sb.toString();
@@ -2671,7 +2962,7 @@ public class ArrayUtil {
 	 * @since 3.0.9
 	 */
 	public static <T> T[] toArray(Iterator<T> iterator, Class<T> componentType) {
-		return toArray(CollectionUtil.newArrayList(iterator), componentType);
+		return toArray(CollUtil.newArrayList(iterator), componentType);
 	}
 
 	/**
@@ -2697,8 +2988,7 @@ public class ArrayUtil {
 	 * @since 3.0.9
 	 */
 	public static <T> T[] toArray(Collection<T> collection, Class<T> componentType) {
-		final T[] array = newArray(componentType, collection.size());
-		return collection.toArray(array);
+		return collection.toArray(newArray(componentType, 0));
 	}
 
 	// ---------------------------------------------------------------------- remove
@@ -2841,6 +3131,7 @@ public class ArrayUtil {
 	 * @throws IllegalArgumentException 参数对象不为数组对象
 	 * @since 3.0.8
 	 */
+	@SuppressWarnings("SuspiciousSystemArraycopy")
 	public static Object remove(Object array, int index) throws IllegalArgumentException {
 		if (null == array) {
 			return null;
@@ -3328,20 +3619,33 @@ public class ArrayUtil {
 	// ------------------------------------------------------------------------------------------------------------ min and max
 	/**
 	 * 取最小值
-	 * 
+	 *
 	 * @param <T> 元素类型
 	 * @param numberArray 数字数组
 	 * @return 最小值
 	 * @since 3.0.9
 	 */
 	public static <T extends Comparable<? super T>> T min(T[] numberArray) {
+		return min(numberArray, null);
+	}
+
+	/**
+	 * 取最小值
+	 * 
+	 * @param <T> 元素类型
+	 * @param numberArray 数字数组
+	 * @param comparator 比较器，null按照默认比较
+	 * @return 最小值
+	 * @since 5.3.4
+	 */
+	public static <T extends Comparable<? super T>> T min(T[] numberArray, Comparator<T> comparator) {
 		if (isEmpty(numberArray)) {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		T min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
-			if (ObjectUtil.compare(min, numberArray[i]) > 0) {
-				min = numberArray[i];
+		for (T t : numberArray) {
+			if (CompareUtil.compare(min, t, comparator) > 0) {
+				min = t;
 			}
 		}
 		return min;
@@ -3359,7 +3663,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		long min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3379,7 +3683,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		int min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3399,7 +3703,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		short min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3419,7 +3723,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		char min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3439,7 +3743,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		byte min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3459,7 +3763,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		double min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3479,7 +3783,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		float min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3489,19 +3793,32 @@ public class ArrayUtil {
 
 	/**
 	 * 取最大值
-	 * 
+	 *
 	 * @param <T> 元素类型
 	 * @param numberArray 数字数组
 	 * @return 最大值
 	 * @since 3.0.9
 	 */
 	public static <T extends Comparable<? super T>> T max(T[] numberArray) {
+		return max(numberArray, null);
+	}
+
+	/**
+	 * 取最大值
+	 * 
+	 * @param <T> 元素类型
+	 * @param numberArray 数字数组
+	 * @param comparator 比较器，null表示默认比较器
+	 * @return 最大值
+	 * @since 5.3.4
+	 */
+	public static <T extends Comparable<? super T>> T max(T[] numberArray, Comparator<T> comparator) {
 		if (isEmpty(numberArray)) {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		T max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
-			if (ObjectUtil.compare(max, numberArray[i]) < 0) {
+		for (int i = 1; i < numberArray.length; i++) {
+			if (CompareUtil.compare(max, numberArray[i], comparator) < 0) {
 				max = numberArray[i];
 			}
 		}
@@ -3520,7 +3837,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		long max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3540,7 +3857,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		int max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3560,7 +3877,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		short max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3580,7 +3897,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		char max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3600,7 +3917,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		byte max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3620,7 +3937,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		double max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3640,7 +3957,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		float max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}

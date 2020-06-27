@@ -1,12 +1,10 @@
 package cn.hutool.poi.excel.sax;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.poi.excel.sax.handler.RowHandler;
+import cn.hutool.poi.exceptions.POIException;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder.SheetRecordCollectingListener;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
@@ -20,6 +18,7 @@ import org.apache.poi.hssf.record.BOFRecord;
 import org.apache.poi.hssf.record.BlankRecord;
 import org.apache.poi.hssf.record.BoolErrRecord;
 import org.apache.poi.hssf.record.BoundSheetRecord;
+import org.apache.poi.hssf.record.CellValueRecordInterface;
 import org.apache.poi.hssf.record.FormulaRecord;
 import org.apache.poi.hssf.record.LabelRecord;
 import org.apache.poi.hssf.record.LabelSSTRecord;
@@ -30,10 +29,11 @@ import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
-import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.poi.excel.sax.handler.RowHandler;
-import cn.hutool.poi.exceptions.POIException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Excel2003格式的事件-用户模型方式读取器，在Hutool中，统一将此归类为Sax读取<br>
@@ -46,7 +46,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 	/**
 	 * 如果为公式，true表示输出公式计算后的结果值，false表示输出公式本身
 	 */
-	private boolean isOutputFormulaValues = true;
+	private final boolean isOutputFormulaValues = true;
 
 	/**
 	 * 用于解析公式
@@ -67,7 +67,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 	/**
 	 * Sheet边界记录，此Record中可以获得Sheet名
 	 */
-	private List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
+	private final List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
 
 	private boolean isOutputNextStringRecord;
 
@@ -78,10 +78,10 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 	 * 自定义需要处理的sheet编号，如果-1表示处理所有sheet
 	 */
 	private int rid = -1;
-	// 当前表索引
+	// 当前rid索引
 	private int curRid = -1;
 
-	private RowHandler rowHandler;
+	private final RowHandler rowHandler;
 
 	/**
 	 * 构造
@@ -194,7 +194,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 			if (record instanceof MissingCellDummyRecord) {
 				// 空值的操作
 				MissingCellDummyRecord mc = (MissingCellDummyRecord) record;
-				rowCellList.add(mc.getColumn(), StrUtil.EMPTY);
+				addToRowCellList(mc);
 			} else if (record instanceof LastCellOfRowDummyRecord) {
 				// 行结束
 				processLastCell((LastCellOfRowDummyRecord) record);
@@ -209,6 +209,43 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 	// ---------------------------------------------------------------------------------------------- Private method start
 
 	/**
+	 * 将空数据加入到行列表中
+	 *
+	 * @param record MissingCellDummyRecord
+	 */
+	private void addToRowCellList(MissingCellDummyRecord record) {
+		addToRowCellList(record.getRow(), record.getColumn(), StrUtil.EMPTY);
+	}
+
+	/**
+	 * 将单元格数据加入到行列表中
+	 *
+	 * @param record 单元格
+	 * @param value  值
+	 */
+	private void addToRowCellList(CellValueRecordInterface record, Object value) {
+		addToRowCellList(record.getRow(), record.getColumn(), value);
+	}
+
+	/**
+	 * 将单元格数据加入到行列表中
+	 *
+	 * @param row    行号
+	 * @param column 单元格
+	 * @param value  值
+	 */
+	private void addToRowCellList(int row, int column, Object value) {
+		while (column > this.rowCellList.size()) {
+			// 对于中间无数据的单元格补齐空白
+			this.rowCellList.add(StrUtil.EMPTY);
+			this.rowHandler.handleCell(this.curRid, row, rowCellList.size() - 1, value, null);
+		}
+
+		this.rowCellList.add(column, value);
+		this.rowHandler.handleCell(this.curRid, row, column, value, null);
+	}
+
+	/**
 	 * 处理单元格值
 	 *
 	 * @param record 单元格
@@ -219,12 +256,12 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 		switch (record.getSid()) {
 			case BlankRecord.sid:
 				// 空白记录
-				rowCellList.add(((BlankRecord) record).getColumn(), StrUtil.EMPTY);
+				addToRowCellList(((BlankRecord) record), StrUtil.EMPTY);
 				break;
 			case BoolErrRecord.sid:
 				// 布尔类型
 				final BoolErrRecord berec = (BoolErrRecord) record;
-				rowCellList.add(berec.getColumn(), berec.getBooleanValue());
+				addToRowCellList(berec, berec.getBooleanValue());
 				break;
 			case FormulaRecord.sid:
 				// 公式类型
@@ -240,7 +277,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 				} else {
 					value = StrUtil.wrap(HSSFFormulaParser.toFormulaString(stubWorkbook, formulaRec.getParsedExpression()), "\"");
 				}
-				rowCellList.add(formulaRec.getColumn(), value);
+				addToRowCellList(formulaRec, value);
 				break;
 			case StringRecord.sid:
 				// 单元格中公式的字符串
@@ -253,7 +290,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 			case LabelRecord.sid:
 				final LabelRecord lrec = (LabelRecord) record;
 				value = lrec.getValue();
-				this.rowCellList.add(lrec.getColumn(), value);
+				addToRowCellList(lrec, value);
 				break;
 			case LabelSSTRecord.sid:
 				// 字符串类型
@@ -261,7 +298,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 				if (null != sstRecord) {
 					value = sstRecord.getString(lsrec.getSSTIndex()).toString();
 				}
-				rowCellList.add(lsrec.getColumn(), ObjectUtil.defaultIfNull(value, StrUtil.EMPTY));
+				addToRowCellList(lsrec, ObjectUtil.defaultIfNull(value, StrUtil.EMPTY));
 				break;
 			case NumberRecord.sid: // 数字类型
 				final NumberRecord numrec = (NumberRecord) record;
@@ -271,7 +308,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 					value = numrec.getValue();
 				} else if (formatString.contains(StrUtil.SLASH) || formatString.contains(StrUtil.COLON)) {
 					//日期
-					value = formatListener.formatNumberDateCell(numrec);
+					value = ExcelSaxUtil.getDateValue(numrec.getValue());
 				} else {
 					final double doubleValue = numrec.getValue();
 					final long longPart = (long) doubleValue;
@@ -283,7 +320,7 @@ public class Excel03SaxReader extends AbstractExcelSaxReader<Excel03SaxReader> i
 					}
 				}
 				// 向容器加入列值
-				rowCellList.add(numrec.getColumn(), value);
+				addToRowCellList(numrec, value);
 				break;
 			default:
 				break;

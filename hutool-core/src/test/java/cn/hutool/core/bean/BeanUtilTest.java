@@ -1,16 +1,18 @@
 package cn.hutool.core.bean;
 
+import cn.hutool.core.annotation.Alias;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.bean.copier.ValueProvider;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Console;
 import cn.hutool.core.map.MapUtil;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.beans.PropertyDescriptor;
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +25,6 @@ import java.util.UUID;
  * Bean工具单元测试
  *
  * @author Looly
- *
  */
 public class BeanUtilTest {
 
@@ -42,10 +43,10 @@ public class BeanUtilTest {
 			@Override
 			public Object value(String key, Type valueType) {
 				switch (key) {
-				case "name":
-					return "张三";
-				case "age":
-					return 18;
+					case "name":
+						return "张三";
+					case "age":
+						return 18;
 				}
 				return null;
 			}
@@ -75,6 +76,22 @@ public class BeanUtilTest {
 	}
 
 	@Test
+	public void toBeanTest(){
+		SubPerson person = new SubPerson();
+		person.setAge(14);
+		person.setOpenid("11213232");
+		person.setName("测试A11");
+		person.setSubName("sub名字");
+
+		final Map<?, ?> map = BeanUtil.toBean(person, Map.class);
+		Assert.assertEquals("测试A11", map.get("name"));
+		Assert.assertEquals(14, map.get("age"));
+		Assert.assertEquals("11213232", map.get("openid"));
+		// static属性应被忽略
+		Assert.assertFalse(map.containsKey("SUBNAME"));
+	}
+
+	@Test
 	public void mapToBeanIgnoreCaseTest() {
 		HashMap<String, Object> map = CollUtil.newHashMap();
 		map.put("Name", "Joe");
@@ -99,6 +116,20 @@ public class BeanUtilTest {
 		Person person = BeanUtil.mapToBean(map, Person.class, CopyOptions.create().setFieldMapping(mapping));
 		Assert.assertEquals("Joe", person.getName());
 		Assert.assertEquals(12, person.getAge());
+	}
+
+	/**
+	 * 测试public类型的字段注入是否成功
+	 */
+	@Test
+	public void mapToBeanTest2() {
+		HashMap<String, Object> map = CollUtil.newHashMap();
+		map.put("name", "Joe");
+		map.put("age", 12);
+
+		Person2 person = BeanUtil.mapToBean(map, Person2.class, CopyOptions.create());
+		Assert.assertEquals("Joe", person.name);
+		Assert.assertEquals(12, person.age);
 	}
 
 	@Test
@@ -128,6 +159,29 @@ public class BeanUtilTest {
 
 		Map<String, Object> map = BeanUtil.beanToMap(person, true, true);
 		Assert.assertEquals("sub名字", map.get("sub_name"));
+	}
+
+	@Test
+	public void beanToMapWithAliasTest() {
+		SubPersonWithAlias person = new SubPersonWithAlias();
+		person.setAge(14);
+		person.setOpenid("11213232");
+		person.setName("测试A11");
+		person.setSubName("sub名字");
+		person.setSlow(true);
+
+		Map<String, Object> map = BeanUtil.beanToMap(person);
+		Assert.assertEquals("sub名字", map.get("aliasSubName"));
+	}
+
+	@Test
+	public void mapToBeanWithAliasTest() {
+		Map<String, Object> map = MapUtil.newHashMap();
+		map.put("aliasSubName", "sub名字");
+		map.put("slow", true);
+
+		final SubPersonWithAlias subPersonWithAlias = BeanUtil.mapToBean(map, SubPersonWithAlias.class, false);
+		Assert.assertEquals("sub名字", subPersonWithAlias.getSubName());
 	}
 
 	@Test
@@ -174,6 +228,21 @@ public class BeanUtilTest {
 		Assert.assertTrue(set.contains("openid"));
 		Assert.assertTrue(set.contains("slow"));
 		Assert.assertTrue(set.contains("subName"));
+	}
+
+	@Test
+	public void copyPropertiesTest() {
+		SubPerson person = new SubPerson();
+		person.setAge(14);
+		person.setOpenid("11213232");
+		person.setName("测试A11");
+		person.setSubName("sub名字");
+
+		SubPerson person1 = BeanUtil.copyProperties(person, SubPerson.class);
+		Assert.assertEquals(14, person1.getAge());
+		Assert.assertEquals("11213232", person1.getOpenid());
+		Assert.assertEquals("测试A11", person1.getName());
+		Assert.assertEquals("sub名字", person1.getSubName());
 	}
 
 	@Test
@@ -259,9 +328,80 @@ public class BeanUtilTest {
 
 	@Getter
 	@Setter
+	public static class SubPersonWithAlias extends Person {
+		// boolean参数值非isXXX形式
+		@Alias("aliasSubName")
+		private String subName;
+		private Boolean slow;
+	}
+
+	@Getter
+	@Setter
 	public static class Person {
 		private String name;
 		private int age;
 		private String openid;
+	}
+
+	public static class Person2 {
+		public String name;
+		public int age;
+		public String openid;
+	}
+
+	@Test
+	public void beanToBeanTest() {
+		// 修复对象无getter方法导致报错的问题
+		Page page1 = new Page();
+		BeanUtil.toBean(page1, Page.class);
+	}
+
+	public static class Page {
+		private boolean optimizeCountSql = true;
+
+		public boolean optimizeCountSql() {
+			return optimizeCountSql;
+		}
+
+		public Page setOptimizeCountSql(boolean optimizeCountSql) {
+			this.optimizeCountSql = optimizeCountSql;
+			return this;
+		}
+	}
+
+	@Test
+	public void copyBeanToBeanTest() {
+		// 测试在copyProperties方法中alias是否有效
+		Food info = new Food();
+		info.setBookID("0");
+		info.setCode("123");
+		HllFoodEntity entity = new HllFoodEntity();
+		BeanUtil.copyProperties(info, entity);
+		Assert.assertEquals(info.getBookID(), entity.getBookId());
+		Assert.assertEquals(info.getCode(), entity.getCode2());
+	}
+	
+	@Test
+	public void copyBeanTest(){
+		Food info = new Food();
+		info.setBookID("0");
+		info.setCode("123");
+		Food newFood = BeanUtil.copyProperties(info, Food.class, "code");
+		Assert.assertEquals(info.getBookID(), newFood.getBookID());
+		Assert.assertNull(newFood.getCode());
+	}
+
+	@Data
+	public static class Food {
+		@Alias("bookId")
+		private String bookID;
+		private String code;
+	}
+
+	@Data
+	public static class HllFoodEntity implements Serializable {
+		private String bookId;
+		@Alias("code")
+		private String code2;
 	}
 }
